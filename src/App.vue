@@ -1,11 +1,125 @@
 <script setup></script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+    <h1>🧠 Split Brain</h1>
+    <div id="info-bar">
+      <span id="timer">⏱️ 0s</span> | <span id="level">Level 1 / 2</span> |
+      <span id="countdown">⏳ 60s remaining</span> |
+      <span id="totalTime">Total time : 0s</span>
+    </div>
+    <div id="instructions" class="instructions">
+      <h2>🎮 Controls</h2>
+      <p>
+        <strong>Player 1 (left)</strong> : Z (up), Q (left), S (down), D (right)
+      </p>
+      <p><strong>Player 2 (right)</strong> : Arrow keys ← ↑ ↓ →</p>
+    </div>
+    <div class="grid-container">
+      <div id="left" class="grid">
+        <div class="cell empty player"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell wall"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell empty"></div>
+        <div class="cell goal"></div>
+      </div>
+      <div id="right" class="grid"></div>
+    </div>
+    <audio id="win-sound" src="win.mp3" preload="auto"></audio>
 </template>
 
 <style scoped></style>
