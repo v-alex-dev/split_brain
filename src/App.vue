@@ -1,14 +1,14 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { levels, TILE } from './levels'
+import levelsJson from './levels.json'
 import keyboard from './services/keyboard'
 
 const GRID = 10
 
 // Level selection
 const currentLevelIdx = ref(0)
-const totalLevels = levels.length
-const currentLevel = computed(() => levels[currentLevelIdx.value])
+const totalLevels = levelsJson.levels.length
+const currentLevel = computed(() => levelsJson.levels[currentLevelIdx.value])
 
 // Helpers to convert a 10x10 board to a simple model
 const rcToIndex = (r, c) => r * GRID + c
@@ -22,9 +22,9 @@ const boardToModel = (board) => {
     for (let c = 0; c < GRID; c++) {
       const v = board[r][c]
       const idx = rcToIndex(r, c)
-      if (v === TILE.PLAYER) player = idx
-      else if (v === TILE.GOAL) goal = idx
-      else if (v === TILE.WALL) wall.add(idx)
+      if (v === 1) player = idx
+      else if (v === 2) goal = idx
+      else if (v === 3) wall.add(idx)
     }
   }
   return { time: 60, player, goal, wall }
