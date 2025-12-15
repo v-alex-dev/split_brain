@@ -3,9 +3,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import levelsJson from './levels.json'
 import keyboard from './services/keyboard'
 
-const GRID = 10
-
-// Level selection
 const currentLevelIdx = ref(0)
 const totalLevels = levelsJson.levels.length
 const currentLevel = computed(() => levelsJson.levels[currentLevelIdx.value])
@@ -30,59 +27,141 @@ const boardToModel = (board) => {
   return { time: 60, player, goal, wall }
 }
 
-// Two models for left/right boards
-const leftModel = ref(boardToModel(currentLevel.value.boards[0]))
-const rightModel = ref(boardToModel(currentLevel.value.boards[1]))
+// Timer
+const timer = ref(0)
+const countdown = ref(60)
+const totalTime = ref(0)
+let timerInterval = null
 
-// Cells indices 0..99 used to render grids
-const cells = computed(() => Array.from({ length: GRID * GRID }, (_, i) => i))
+// Grilles dynamiques
+const leftBoard = ref([])
+const rightBoard = ref([])
 
-const tileClassAt = (model, idx, side) => {
-  if (model.wall.has(idx)) return 'cell wall'
-  if (idx === model.goal) return 'cell goal'
-  if (idx === model.player) return `cell ${side === 'right' ? 'player2' : 'player'}`
-  return 'cell'
+// Initialise le niveau
+const initLevel = () => {
+  const level = levels[currentLevelIdx.value]
+  leftBoard.value = JSON.parse(JSON.stringify(level.boards[0]))
+  rightBoard.value = JSON.parse(JSON.stringify(level.boards[1]))
+  
+  // Trouve les positions initiales des joueurs
+  leftBoard.value.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      if (cell === TILE.PLAYER) {
+        player1Pos.value = { row: r, col: c }
+      }
+    })
+  })
+  
+  rightBoard.value.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      if (cell === TILE.PLAYER) {
+        player2Pos.value = { row: r, col: c }
+      }
+    })
+  })
+  
+  timer.value = 0
+  countdown.value = 60
 }
 
-const canMoveTo = (model, idx) => idx >= 0 && idx < GRID * GRID && !model.wall.has(idx)
-
-const move = (modelRef, dir) => {
-  const model = modelRef.value
-  const [r, c] = indexToRC(model.player)
-  let nr = r
-  let nc = c
-  if (dir === 'up') nr = r - 1
-  if (dir === 'down') nr = r + 1
-  if (dir === 'left') nc = c - 1
-  if (dir === 'right') nc = c + 1
-  if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID) return
-  const nextIdx = rcToIndex(nr, nc)
-  if (canMoveTo(model, nextIdx)) {
-    modelRef.value = { ...model, player: nextIdx }
+// Déplace un joueur
+const movePlayer = (player, direction) => {
+  const pos = player === 'player1' ? player1Pos.value : player2Pos.value
+  const board = player === 'player1' ? leftBoard.value : rightBoard.value
+  
+  let newRow = pos.row
+  let newCol = pos.col
+  
+  if (direction === 'up') newRow--
+  if (direction === 'down') newRow++
+  if (direction === 'left') newCol--
+  if (direction === 'right') newCol++
+  
+  // Vérifie les limites et les murs
+  if (newRow < 0 || newRow >= 10 || newCol < 0 || newCol >= 10) return
+  if (board[newRow][newCol] === TILE.WALL) return
+  
+  // Efface l'ancienne position
+  board[pos.row][pos.col] = TILE.EMPTY
+  
+  // Vérifie si le joueur atteint le goal
+  if (board[newRow][newCol] === TILE.GOAL) {
+    board[newRow][newCol] = TILE.PLAYER
+    pos.row = newRow
+    pos.col = newCol
+    checkWin()
+  } else {
+    // Déplace le joueur
+    board[newRow][newCol] = TILE.PLAYER
+    pos.row = newRow
+    pos.col = newCol
   }
 }
 
-let unsubscribe = null
+// Vérifie la victoire
+const checkWin = () => {
+  const p1OnGoal = leftBoard.value[player1Pos.value.row][player1Pos.value.col] === TILE.PLAYER &&
+                   levels[currentLevelIdx.value].boards[0][player1Pos.value.row][player1Pos.value.col] === TILE.GOAL
+  const p2OnGoal = rightBoard.value[player2Pos.value.row][player2Pos.value.col] === TILE.PLAYER &&
+                   levels[currentLevelIdx.value].boards[1][player2Pos.value.row][player2Pos.value.col] === TILE.GOAL
+  
+  if (p1OnGoal && p2OnGoal) {
+    keyboardService.playVictory()
+    totalTime.value += timer.value
+    
+    setTimeout(() => {
+      if (currentLevelIdx.value < totalLevels - 1) {
+        currentLevelIdx.value++
+        initLevel()
+      } else {
+        alert(`🎉 Félicitations ! Jeu terminé en ${totalTime.value}s !`)
+      }
+    }, 500)
+  }
+}
+
 onMounted(() => {
-  unsubscribe = keyboard.onKeyChange((type, player, action) => {
-    if (type !== 'keydown') return
-    if (player === 'player1') move(leftModel, action)
-    else if (player === 'player2') move(rightModel, action)
+  initLevel()
+  
+  // Timer
+  timerInterval = setInterval(() => {
+    timer.value++
+    countdown.value--
+    
+    if (countdown.value <= 0) {
+      alert('⏰ Temps écoulé ! Recommence le niveau.')
+      initLevel()
+    }
+  }, 1000)
+  
+  // Écoute les touches
+  keyboardService.onKeyChange((type, player, action) => {
+    if (type === 'keydown') {
+      movePlayer(player, action)
+    }
   })
 })
 
 onUnmounted(() => {
-  if (unsubscribe) unsubscribe()
+  clearInterval(timerInterval)
+  keyboardService.destroy()
 })
+
+const tileClass = (val, side) => {
+  if (val === TILE.WALL) return 'cell wall'
+  if (val === TILE.GOAL) return 'cell goal'
+  if (val === TILE.PLAYER) return `cell ${side === 'right' ? 'player2' : 'player'}`
+  return 'cell'
+}
 </script>
 
 <template>
   <h1>🧠 Split Brain</h1>
   <div id="info-bar">
-    <span id="timer">⏱️ 0s</span> |
+    <span id="timer">⏱️ {{ timer }}s</span> |
     <span id="level">Level {{ currentLevelIdx + 1 }} / {{ totalLevels }}</span> |
-    <span id="countdown">⏳ 60s remaining</span> |
-    <span id="totalTime">Total time : 0s</span>
+    <span id="countdown">⏳ {{ countdown }}s remaining</span> |
+    <span id="totalTime">Total time : {{ totalTime }}s</span>
   </div>
   <div id="instructions" class="instructions">
     <h2>🎮 Controls</h2>
@@ -91,19 +170,14 @@ onUnmounted(() => {
   </div>
   <div class="grid-container">
     <div id="left" class="grid">
-      <div
-        v-for="idx in cells"
-        :key="`l-` + idx"
-        :class="tileClassAt(leftModel, idx, 'left')"
-      ></div>
+      <template v-for="(row, r) in leftBoard" :key="r">
+        <div v-for="(cell, c) in row" :key="`${r}-${c}`" :class="tileClass(cell, 'left')" />
+      </template>
     </div>
     <div id="right" class="grid">
-      <div
-        v-for="idx in cells"
-        :key="`r-` + idx"
-        :class="tileClassAt(rightModel, idx, 'right')"
-      ></div>
+      <template v-for="(row, r) in rightBoard" :key="r">
+        <div v-for="(cell, c) in row" :key="`${r}-${c}`" :class="tileClass(cell, 'right')" />
+      </template>
     </div>
   </div>
-  <audio id="win-sound" src="win.mp3" preload="auto"></audio>
 </template>
