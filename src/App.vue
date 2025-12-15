@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { levels, TILE } from './levels'
 import keyboardService from './services/keyboard'
 import GameGrid from './components/GameGrid.vue'
+import VictoryPopup from './components/VictoryPopup.vue'
 
 const currentLevelIdx = ref(0)
 const totalLevels = levels.length
@@ -21,6 +22,10 @@ let timerInterval = null
 // Grilles dynamiques
 const leftBoard = ref([])
 const rightBoard = ref([])
+
+// Popup de victoire
+const showPopup = ref(false)
+const isGameComplete = ref(false)
 
 // Initialise le niveau
 const initLevel = () => {
@@ -97,35 +102,56 @@ const checkWin = () => {
   if (p1OnGoal && p2OnGoal) {
     keyboardService.playVictory()
     totalTime.value += timer.value
-
-    setTimeout(() => {
-      if (currentLevelIdx.value < totalLevels - 1) {
-        currentLevelIdx.value++
-        initLevel()
-      } else {
-        alert(`🎉 Félicitations ! Jeu terminé en ${totalTime.value}s !`)
-      }
-    }, 500)
+    clearInterval(timerInterval)
+    
+    // Vérifie si c'est le dernier niveau
+    isGameComplete.value = currentLevelIdx.value >= totalLevels - 1
+    showPopup.value = true
   }
 }
 
-onMounted(() => {
+// Actions de la popup
+const nextLevel = () => {
+  showPopup.value = false
+  currentLevelIdx.value++
   initLevel()
+  startTimer()
+}
 
-  // Timer
+const replayLevel = () => {
+  showPopup.value = false
+  initLevel()
+  startTimer()
+}
+
+const restartGame = () => {
+  showPopup.value = false
+  currentLevelIdx.value = 0
+  totalTime.value = 0
+  initLevel()
+  startTimer()
+}
+
+const startTimer = () => {
   timerInterval = setInterval(() => {
     timer.value++
     countdown.value--
 
     if (countdown.value <= 0) {
-      alert('⏰ Temps écoulé ! Recommence le niveau.')
-      initLevel()
+      clearInterval(timerInterval)
+      showPopup.value = true
+      isGameComplete.value = false
     }
   }, 1000)
+}
+
+onMounted(() => {
+  initLevel()
+  startTimer()
 
   // Écoute les touches
   keyboardService.onKeyChange((type, player, action) => {
-    if (type === 'keydown') {
+    if (type === 'keydown' && !showPopup.value) {
       movePlayer(player, action)
     }
   })
@@ -154,4 +180,16 @@ onUnmounted(() => {
     <GameGrid :board="leftBoard" side="left" grid-id="left" />
     <GameGrid :board="rightBoard" side="right" grid-id="right" />
   </div>
+
+  <!-- Popup de victoire -->
+  <VictoryPopup
+    v-if="showPopup"
+    :is-game-complete="isGameComplete"
+    :is-time-out="countdown <= 0"
+    :timer="timer"
+    :total-time="totalTime"
+    @next-level="nextLevel"
+    @replay="replayLevel"
+    @restart="restartGame"
+  />
 </template>
