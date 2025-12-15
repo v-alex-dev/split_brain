@@ -103,7 +103,19 @@ const checkWin = () => {
     keyboardService.playVictory()
     totalTime.value += timer.value
     clearInterval(timerInterval)
-    
+
+    // Easter egg pour le niveau 6 (QR codes rickroll)
+    if (currentLevelIdx.value === 5) {
+      setTimeout(() => {
+        const rickroll = confirm(
+          '🎉 Niveau des QR codes terminé! 🎵\n\nVoulez-vous scanner le QR code? 😏',
+        )
+        if (rickroll) {
+          window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')
+        }
+      }, 500)
+    }
+
     // Vérifie si c'est le dernier niveau
     isGameComplete.value = currentLevelIdx.value >= totalLevels - 1
     showPopup.value = true
