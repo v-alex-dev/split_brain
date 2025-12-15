@@ -1,10 +1,26 @@
-<script setup></script>
+<script setup>
+import { ref, computed } from 'vue'
+import { levels, TILE } from './levels'
+
+const currentLevelIdx = ref(0)
+const totalLevels = levels.length
+const currentLevel = computed(() => levels[currentLevelIdx.value])
+const leftBoard = computed(() => currentLevel.value.boards[0])
+const rightBoard = computed(() => currentLevel.value.boards[1])
+
+const tileClass = (val, side) => {
+  if (val === TILE.WALL) return 'cell wall'
+  if (val === TILE.GOAL) return 'cell goal'
+  if (val === TILE.PLAYER) return `cell ${side === 'right' ? 'player2' : 'player'}`
+  return 'cell'
+}
+</script>
 
 <template>
-  <router-view />
   <h1>🧠 Split Brain</h1>
   <div id="info-bar">
-    <span id="timer">⏱️ 0s</span> | <span id="level">Level 1 / 2</span> |
+    <span id="timer">⏱️ 0s</span> |
+    <span id="level">Level {{ currentLevelIdx + 1 }} / {{ totalLevels }}</span> |
     <span id="countdown">⏳ 60s remaining</span> |
     <span id="totalTime">Total time : 0s</span>
   </div>
@@ -15,110 +31,15 @@
   </div>
   <div class="grid-container">
     <div id="left" class="grid">
-      <div class="cell empty player"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell wall"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell empty"></div>
-      <div class="cell goal"></div>
+      <template v-for="(row, r) in leftBoard" :key="r">
+        <div v-for="(cell, c) in row" :key="`${r}-${c}`" :class="tileClass(cell, 'left')" />
+      </template>
     </div>
-    <div id="right" class="grid"></div>
+    <div id="right" class="grid">
+      <template v-for="(row, r) in rightBoard" :key="r">
+        <div v-for="(cell, c) in row" :key="`${r}-${c}`" :class="tileClass(cell, 'right')" />
+      </template>
+    </div>
   </div>
   <audio id="win-sound" src="win.mp3" preload="auto"></audio>
 </template>
-
-<style scoped></style>
