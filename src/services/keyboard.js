@@ -147,7 +147,6 @@ class KeyboardService {
   }
 
   // Réinitialise toutes les touches
-  reset() {ialise toutes les touches
   reset() {
     this.keys.player1 = { up: false, down: false, left: false, right: false };
     this.keys.player2 = { up: false, down: false, left: false, right: false };
