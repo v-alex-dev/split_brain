@@ -16,6 +16,15 @@ class KeyboardService {
       }
     };
 
+    // Sons
+    this.sounds = {
+      click: new Audio('/sounds/click.mp3'),
+      victory: new Audio('/sounds/victory.mp3')
+    };
+
+    // Configuration des sons
+    this.soundEnabled = true;
+
     // Mapping des touches
     this.keyMapping = {
       // Player 1 - ZQSD
@@ -56,6 +65,7 @@ class KeyboardService {
       // Met à jour l'état uniquement si la touche n'était pas déjà enfoncée
       if (!this.keys[player][action]) {
         this.keys[player][action] = true;
+        this.playSound('click');
         this.notifyCallbacks('keydown', player, action);
       }
     }
@@ -103,7 +113,6 @@ class KeyboardService {
       }
     };
   }
-
   // Notifie tous les callbacks enregistrés
   notifyCallbacks(type, player, action) {
     this.callbacks.forEach(callback => {
@@ -111,7 +120,34 @@ class KeyboardService {
     });
   }
 
+  // Joue un son
+  playSound(soundName) {
+    if (this.soundEnabled && this.sounds[soundName]) {
+      const sound = this.sounds[soundName];
+      sound.currentTime = 0; // Redémarre le son depuis le début
+      sound.play().catch(err => {
+        console.warn('Impossible de jouer le son:', err);
+      });
+    }
+  }
+
+  // Active/désactive les sons
+  toggleSound(enabled = null) {
+    if (enabled === null) {
+      this.soundEnabled = !this.soundEnabled;
+    } else {
+      this.soundEnabled = enabled;
+    }
+    return this.soundEnabled;
+  }
+
+  // Joue le son de victoire
+  playVictory() {
+    this.playSound('victory');
+  }
+
   // Réinitialise toutes les touches
+  reset() {ialise toutes les touches
   reset() {
     this.keys.player1 = { up: false, down: false, left: false, right: false };
     this.keys.player2 = { up: false, down: false, left: false, right: false };
